@@ -138,15 +138,22 @@ body {
 .refresh-sticker-button {
     position: absolute;
     bottom: 10px;
-    left: 10px;
-    padding: 5px 10px;
+    right: 10px;
+    padding: 10px;
     background-color: #4CAF50;
     color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 50%;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .refresh-sticker-button:hover {
     background-color: #45a049;
+}
+
+.refresh-sticker-button i {
+    font-size: 18px; /* 根据需要调整图标大小 */
 }
