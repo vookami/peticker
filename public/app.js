@@ -1,8 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const sticker = document.getElementById('sticker');
     const confirmButton = document.getElementById('confirm-button');
-    const modal = document.getElementById('uploaded-images-modal');
-    const closeButton = document.querySelector('.close-button');
 
     // 请求随机贴图
     const fetchSticker = () => {
