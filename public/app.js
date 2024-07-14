@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const sticker = document.getElementById('sticker');
     const confirmButton = document.getElementById('confirm-button');
-    const resetButton = document.getElementById('reset-button');
     const modal = document.getElementById('uploaded-images-modal');
     const closeButton = document.querySelector('.close-button');
 
@@ -11,7 +10,12 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(response => response.json())
             .then(data => {
                 console.log('Random sticker data:', data); // 调试信息
-                if (data.message) {
+                if (data.reset) {
+                    // 自动刷新页面
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000); // 延迟2秒刷新
+                } else if (data.message) {
                     alert(data.message);
                 } else {
                     sticker.src = data.sticker;
@@ -76,26 +80,4 @@ document.addEventListener('DOMContentLoaded', () => {
             origin: { y: 0.6 }
         });
     });
-
-    if (resetButton) {
-        resetButton.addEventListener('click', () => {
-            fetch('/reset-stickers', {
-                method: 'POST'
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                alert(data.message);
-                console.log("ステッカーリストがリセットされました！");
-                fetchSticker(); // 重置后重新获取贴图
-            })
-            .catch(error => {
-                console.error('Error resetting stickers:', error);
-            });
-        });
-    }
 });
