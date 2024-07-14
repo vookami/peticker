@@ -93,33 +93,4 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log("ステッカーリストがリセットされました！");
         });
     }
-
-    // 加载已上传的图片
-    function loadUploadedImages() {
-        fetch('/uploaded-images')
-            .then(response => response.json())
-            .then(data => {
-                const uploadedImagesContainer = document.getElementById('uploaded-images');
-                uploadedImagesContainer.innerHTML = '';
-                data.images.forEach(image => {
-                    const imgElement = document.createElement('img');
-                    imgElement.src = image.url;
-                    imgElement.alt = 'Uploaded Image';
-                    imgElement.style.maxWidth = '100px';
-                    imgElement.style.margin = '10px';
-                    uploadedImagesContainer.appendChild(imgElement);
-                });
-            })
-            .catch(error => {
-                console.error('Error loading uploaded images:', error);
-            });
-    }
-
-    // 关闭模态对话框
-    closeButton.addEventListener('click', () => {
-        modal.style.display = 'none';
-    });
-
-    // 初始加载已上传的图片
-    loadUploadedImages();
 });
