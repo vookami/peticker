@@ -20,17 +20,19 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 // 初始化贴图列表
-let stickers = [];
-let usedStickers = new Set();
+let stickersCount = 0;
+let availableStickers = [];
 
-const fetchStickersFromLocal = () => {
+const initializeStickers = () => {
     const stickersDir = path.join(__dirname, '../public/stickers');
-    stickers = fs.readdirSync(stickersDir).map(file => `stickers/${file}`);
-    console.log('Stickers fetched from local filesystem:', stickers);
+    const files = fs.readdirSync(stickersDir).filter(file => file.startsWith('sticker') && file.endsWith('.png'));
+    stickersCount = files.length;
+    availableStickers = Array.from({ length: stickersCount }, (_, i) => i);
+    console.log('Stickers initialized:', availableStickers);
 };
 
 // 初始化贴图列表
-fetchStickersFromLocal();
+initializeStickers();
 
 // 设置静态文件夹
 app.use(express.static(path.join(__dirname, '../public')));
@@ -67,15 +69,14 @@ app.post('/upload', upload.single('image'), (req, res) => {
 // 随机分配贴图端点
 app.get('/random-sticker', (req, res) => {
     console.log('Received request for /random-sticker');
-    const availableStickers = stickers.filter(sticker => !usedStickers.has(sticker));
 
     if (availableStickers.length === 0) {
         return res.status(200).json({ message: '全てのぺッティカーが配れました。' });
     }
 
     const randomIndex = Math.floor(Math.random() * availableStickers.length);
-    const selectedSticker = availableStickers[randomIndex];
-    usedStickers.add(selectedSticker);
+    const selectedStickerNumber = availableStickers.splice(randomIndex, 1)[0];
+    const selectedSticker = `stickers/sticker${selectedStickerNumber}.png`;
 
     res.json({ sticker: `/${selectedSticker}` });
 });
@@ -83,7 +84,7 @@ app.get('/random-sticker', (req, res) => {
 // 重置贴图列表端点
 app.post('/reset-stickers', (req, res) => {
     console.log('Received request for /reset-stickers');
-    usedStickers.clear();
+    initializeStickers();
     console.log("ステッカーリストがリセットされました！");
     res.json({ message: 'ステッカーリストがリセットされました。' });
 });
