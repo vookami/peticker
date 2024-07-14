@@ -4,6 +4,7 @@ const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
 const AWS = require('aws-sdk');
 const fs = require('fs');
+const { Mutex } = require('async-mutex');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -22,6 +23,7 @@ const upload = multer({ storage: storage });
 // 初始化贴图列表
 let stickersCount = 0;
 let availableStickers = [];
+const mutex = new Mutex();
 
 const initializeStickers = () => {
     const stickersDir = path.join(__dirname, '../public/stickers');
@@ -36,7 +38,11 @@ initializeStickers();
 
 // 设置静态文件夹
 app.use(express.static(path.join(__dirname, '../public')));
-app.use('/stickers', express.static(path.join(__dirname, '../public/stickers')));
+app.use('/stickers', express.static(path.join(__dirname, '../public/stickers'), {
+    setHeaders: (res, path) => {
+        res.setHeader('Cache-Control', 'no-cache');
+    }
+}));
 
 // 文件上传端点
 app.post('/upload', upload.single('image'), (req, res) => {
@@ -67,18 +73,23 @@ app.post('/upload', upload.single('image'), (req, res) => {
 });
 
 // 随机分配贴图端点
-app.get('/random-sticker', (req, res) => {
+app.get('/random-sticker', async (req, res) => {
     console.log('Received request for /random-sticker');
 
-    if (availableStickers.length === 0) {
-        return res.status(200).json({ message: '全てのぺッティカーが配れました。' });
+    const release = await mutex.acquire();
+    try {
+        if (availableStickers.length === 0) {
+            return res.status(200).json({ message: '全てのぺッティカーが配れました。' });
+        }
+
+        const randomIndex = Math.floor(Math.random() * availableStickers.length);
+        const selectedStickerNumber = availableStickers.splice(randomIndex, 1)[0];
+        const selectedSticker = `stickers/sticker${selectedStickerNumber}.png`;
+
+        res.json({ sticker: `/${selectedSticker}` });
+    } finally {
+        release();
     }
-
-    const randomIndex = Math.floor(Math.random() * availableStickers.length);
-    const selectedStickerNumber = availableStickers.splice(randomIndex, 1)[0];
-    const selectedSticker = `stickers/sticker${selectedStickerNumber}.png`;
-
-    res.json({ sticker: `/${selectedSticker}` });
 });
 
 // 重置贴图列表端点
