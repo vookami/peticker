@@ -52,20 +52,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 const formData = new FormData();
                 formData.append('image', blob, 'edited-photo.png');
 
-                fetch('/upload', {
+                fetch('/upload', { // 修改端点为 '/upload'
                     method: 'POST',
                     body: formData
                 })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.message) {
-                        alert(data.message);
-                    }
-                    loadUploadedImages(); // 上传成功后加载已上传的图片
-                    modal.style.display = 'block'; // 显示模态对话框
+                    alert('ご参加ありがとうございます！');
                 })
                 .catch(error => {
-                    console.error('Error uploading image:', error);
+                    console.error('Error:', error);
                 });
             }, 'image/png');
         });
