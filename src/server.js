@@ -3,7 +3,6 @@ const path = require('path');
 const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
 const AWS = require('aws-sdk');
-const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -38,7 +37,7 @@ const fetchStickersFromS3 = async () => {
     }
 };
 
-// 初始化
+// 初始化贴图列表
 fetchStickersFromS3().catch(console.error);
 
 // 设置静态文件夹
