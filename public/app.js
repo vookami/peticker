@@ -5,8 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 请求随机贴图
     const fetchSticker = () => {
-        sticker.classList.add('fade'); // 添加动画类
-        fetch('/random-sticker')
+        return fetch('/random-sticker')
             .then(response => response.json())
             .then(data => {
                 console.log('Random sticker data:', data); // 调试信息
@@ -18,11 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else if (data.message) {
                     alert(data.message);
                 } else {
-                    setTimeout(() => { // 等待动画完成后更新贴纸
-                        sticker.src = data.sticker;
-                        console.log('Sticker src set to:', sticker.src); // 调试信息
-                        sticker.classList.remove('fade'); // 移除动画类
-                    }, 500); // 动画持续时间为1s，因此设置为500ms
+                    return data.sticker;
                 }
             })
             .catch(error => {
@@ -32,7 +27,29 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     };
 
-    fetchSticker();
+    const fadeOutInSticker = (newStickerSrc) => {
+        return new Promise((resolve) => {
+            sticker.classList.add('fade'); // 添加动画类
+            setTimeout(() => {
+                sticker.src = newStickerSrc;
+                sticker.classList.remove('fade'); // 移除动画类
+                resolve();
+            }, 500); // 动画持续时间为0.5s
+        });
+    };
+
+    const handleStickerRefresh = async () => {
+        const newStickerSrc = await fetchSticker();
+        if (newStickerSrc) {
+            await fadeOutInSticker(newStickerSrc);
+        }
+    };
+
+    fetchSticker().then((initialSticker) => {
+        if (initialSticker) {
+            sticker.src = initialSticker;
+        }
+    });
 
     // 使用 interact.js 实现拖放功能
     interact(sticker).draggable({
@@ -84,9 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    refreshStickerButton.addEventListener('click', () => {
-        fetchSticker();
-    }); // 绑定刷新按钮事件
+    refreshStickerButton.addEventListener('click', handleStickerRefresh); // 绑定刷新按钮事件
 
     if (resetButton) {
         resetButton.addEventListener('click', () => {
