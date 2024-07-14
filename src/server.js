@@ -21,7 +21,7 @@ const upload = multer({ storage: storage });
 
 // 初始化贴图列表
 let stickers = [];
-const usedStickers = new Set();
+let usedStickers = new Set();
 
 const fetchStickersFromLocal = () => {
     const stickersDir = path.join(__dirname, '../public/stickers');
