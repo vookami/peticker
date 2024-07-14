@@ -3,6 +3,7 @@ const path = require('path');
 const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
 const AWS = require('aws-sdk');
+const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -18,9 +19,8 @@ const s3 = new AWS.S3({
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-// 初始化贴图列表和已使用贴图
+// 初始化贴图列表
 let stickers = [];
-let usedStickers = new Set();  // 使用Set来记录已使用的贴图
 
 // 获取贴图列表并存储到内存中
 const fetchStickersFromS3 = async () => {
@@ -76,24 +76,50 @@ app.post('/upload', upload.single('image'), (req, res) => {
 // 顺序分配贴图端点
 app.get('/random-sticker', (req, res) => {
     console.log('Received request for /random-sticker');
-    const availableStickers = stickers.filter(sticker => !usedStickers.has(sticker));
-    if (availableStickers.length === 0) {
+    if (stickers.length === 0) {
         return res.status(200).json({ message: '全てのぺッティカーが配れました。' });
     }
 
-    const selectedSticker = availableStickers[0];
-    usedStickers.add(selectedSticker);
-    console.log('Selected sticker:', selectedSticker);
+    const selectedSticker = stickers.shift();
+    const params = {
+        Bucket: process.env.S3_BUCKET,
+        Key: selectedSticker
+    };
 
-    res.json({ sticker: `https://${process.env.S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${selectedSticker}` });
+    s3.deleteObject(params, (err, data) => {
+        if (err) {
+            console.error('Error deleting sticker from S3:', err);
+            return res.status(500).json({ message: 'ステッカーの削除に失敗しました。', error: err.message });
+        }
+
+        console.log('Sticker deleted successfully:', selectedSticker);
+        res.json({ sticker: `https://${process.env.S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${selectedSticker}` });
+    });
 });
 
 // 重置贴图列表端点
 app.post('/reset-stickers', async (req, res) => {
     console.log('Received request for /reset-stickers');
+    const backupParams = {
+        Bucket: process.env.S3_BUCKET,
+        Prefix: 'stickers-backup/' // 备份贴纸存储在这个路径下
+    };
+
     try {
+        const backupData = await s3.listObjectsV2(backupParams).promise();
+        const backupStickers = backupData.Contents.map(item => item.Key);
+
+        for (const sticker of backupStickers) {
+            const copyParams = {
+                Bucket: process.env.S3_BUCKET,
+                CopySource: `${process.env.S3_BUCKET}/${sticker}`,
+                Key: sticker.replace('stickers-backup/', 'stickers/')
+            };
+
+            await s3.copyObject(copyParams).promise();
+        }
+
         await fetchStickersFromS3(); // 重新获取贴图列表
-        usedStickers.clear(); // 重置已使用贴图
         console.log("ステッカーリストがリセットされました！");
         res.json({ message: 'ステッカーリストがリセットされました。' });
     } catch (error) {
