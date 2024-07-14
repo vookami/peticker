@@ -104,11 +104,16 @@ app.get('/random-sticker', (req, res) => {
 
 // 重置贴图列表端点
 app.post('/reset-stickers', async (req, res) => {
-    await fetchStickersFromS3(); // 重新获取贴图列表
-    usedStickers = []; // 重置已使用贴图
-    saveUsedStickers();
-    console.log("ステッカーリストがリセットされました！");
-    res.json({ message: 'ステッカーリストがリセットされました。' });
+    try {
+        await fetchStickersFromS3(); // 重新获取贴图列表
+        usedStickers = []; // 重置已使用贴图
+        saveUsedStickers();
+        console.log("ステッカーリストがリセットされました！");
+        res.json({ message: 'ステッカーリストがリセットされました。' });
+    } catch (error) {
+        console.error('Error resetting stickers:', error);
+        res.status(500).json({ message: 'ステッカーリストのリセットに失敗しました。', error: error.message });
+    }
 });
 
 // 返回index.html文件
