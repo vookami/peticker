@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+const fs = require('fs'); // 确保导入 fs 模块
 const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
 const AWS = require('aws-sdk');
