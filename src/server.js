@@ -37,6 +37,21 @@ const fetchStickersFromS3 = async () => {
     }
 };
 
+// 获取已使用贴图列表
+const fetchUsedStickersFromS3 = async () => {
+    const params = {
+        Bucket: process.env.S3_BUCKET,
+        Prefix: 'used-stickers/' // 已使用贴图的标志文件存储在这个路径下
+    };
+    try {
+        const data = await s3.listObjectsV2(params).promise();
+        return new Set(data.Contents.map(item => item.Key.replace('used-stickers/', '')));
+    } catch (error) {
+        console.error('Error fetching used stickers from S3:', error);
+        return new Set();
+    }
+};
+
 // 初始化贴图列表
 fetchStickersFromS3().catch(console.error);
 
@@ -73,25 +88,32 @@ app.post('/upload', upload.single('image'), (req, res) => {
 });
 
 // 顺序分配贴图端点
-app.get('/random-sticker', (req, res) => {
+app.get('/random-sticker', async (req, res) => {
     console.log('Received request for /random-sticker');
-    if (stickers.length === 0) {
+    const usedStickers = await fetchUsedStickersFromS3();
+    const availableStickers = stickers.filter(sticker => !usedStickers.has(sticker));
+
+    if (availableStickers.length === 0) {
         return res.status(200).json({ message: '全てのぺッティカーが配れました。' });
     }
 
-    const selectedSticker = stickers.shift();
+    const selectedSticker = availableStickers[0];
+    const usedStickerKey = `used-stickers/${selectedSticker}`;
+
     const params = {
         Bucket: process.env.S3_BUCKET,
-        Key: selectedSticker
+        Key: usedStickerKey,
+        Body: '',
+        ContentType: 'text/plain'
     };
 
-    s3.deleteObject(params, (err, data) => {
+    s3.putObject(params, (err, data) => {
         if (err) {
-            console.error('Error deleting sticker from S3:', err);
-            return res.status(500).json({ message: 'ステッカーの削除に失敗しました。', error: err.message });
+            console.error('Error marking sticker as used in S3:', err);
+            return res.status(500).json({ message: 'ステッカーの使用マークに失敗しました。', error: err.message });
         }
 
-        console.log('Sticker deleted successfully:', selectedSticker);
+        console.log('Sticker marked as used successfully:', selectedSticker);
         res.json({ sticker: `https://${process.env.S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${selectedSticker}` });
     });
 });
@@ -99,25 +121,21 @@ app.get('/random-sticker', (req, res) => {
 // 重置贴图列表端点
 app.post('/reset-stickers', async (req, res) => {
     console.log('Received request for /reset-stickers');
-    const backupParams = {
+    const usedParams = {
         Bucket: process.env.S3_BUCKET,
-        Prefix: 'stickers-backup/' // 备份贴纸存储在这个路径下
+        Prefix: 'used-stickers/' // 已使用贴图的标志文件存储在这个路径下
     };
 
     try {
-        const backupData = await s3.listObjectsV2(backupParams).promise();
-        const backupStickers = backupData.Contents.map(item => item.Key);
+        const usedData = await s3.listObjectsV2(usedParams).promise();
+        const deleteParams = {
+            Bucket: process.env.S3_BUCKET,
+            Delete: {
+                Objects: usedData.Contents.map(item => ({ Key: item.Key }))
+            }
+        };
 
-        for (const sticker of backupStickers) {
-            const copyParams = {
-                Bucket: process.env.S3_BUCKET,
-                CopySource: `${process.env.S3_BUCKET}/${sticker}`,
-                Key: sticker.replace('stickers-backup/', 'stickers/')
-            };
-
-            await s3.copyObject(copyParams).promise();
-        }
-
+        await s3.deleteObjects(deleteParams).promise();
         await fetchStickersFromS3(); // 重新获取贴图列表
         console.log("ステッカーリストがリセットされました！");
         res.json({ message: 'ステッカーリストがリセットされました。' });
