@@ -4,7 +4,6 @@ const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
 const AWS = require('aws-sdk');
 const fs = require('fs');
-const { Mutex } = require('async-mutex');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,15 +20,13 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 // 初始化贴图列表
-let stickersCount = 0;
+let stickers = [];
 let availableStickers = [];
-const mutex = new Mutex();
 
 const initializeStickers = () => {
     const stickersDir = path.join(__dirname, '../public/stickers');
-    const files = fs.readdirSync(stickersDir).filter(file => file.startsWith('sticker') && file.endsWith('.png'));
-    stickersCount = files.length;
-    availableStickers = Array.from({ length: stickersCount }, (_, i) => i);
+    stickers = fs.readdirSync(stickersDir).filter(file => file.startsWith('sticker') && file.endsWith('.png'));
+    availableStickers = Array.from({ length: stickers.length }, (_, i) => i);
     console.log('Stickers initialized:', availableStickers);
 };
 
@@ -38,11 +35,7 @@ initializeStickers();
 
 // 设置静态文件夹
 app.use(express.static(path.join(__dirname, '../public')));
-app.use('/stickers', express.static(path.join(__dirname, '../public/stickers'), {
-    setHeaders: (res, path) => {
-        res.setHeader('Cache-Control', 'no-cache');
-    }
-}));
+app.use('/stickers', express.static(path.join(__dirname, '../public/stickers')));
 
 // 文件上传端点
 app.post('/upload', upload.single('image'), (req, res) => {
@@ -73,23 +66,18 @@ app.post('/upload', upload.single('image'), (req, res) => {
 });
 
 // 随机分配贴图端点
-app.get('/random-sticker', async (req, res) => {
+app.get('/random-sticker', (req, res) => {
     console.log('Received request for /random-sticker');
 
-    const release = await mutex.acquire();
-    try {
-        if (availableStickers.length === 0) {
-            return res.status(200).json({ message: '全てのぺッティカーが配れました。' });
-        }
-
-        const randomIndex = Math.floor(Math.random() * availableStickers.length);
-        const selectedStickerNumber = availableStickers.splice(randomIndex, 1)[0];
-        const selectedSticker = `stickers/sticker${selectedStickerNumber}.png`;
-
-        res.json({ sticker: `/${selectedSticker}` });
-    } finally {
-        release();
+    if (availableStickers.length === 0) {
+        return res.status(200).json({ message: '全てのぺッティカーが配れました。' });
     }
+
+    const randomIndex = Math.floor(Math.random() * availableStickers.length);
+    const selectedStickerIndex = availableStickers.splice(randomIndex, 1)[0];
+    const selectedSticker = stickers[selectedStickerIndex];
+
+    res.json({ sticker: `/stickers/${selectedSticker}` });
 });
 
 // 重置贴图列表端点
