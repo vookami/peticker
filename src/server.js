@@ -66,28 +66,6 @@ app.get('/random-sticker', (req, res) => {
     res.json({ sticker: `/stickers/${selectedSticker}` });
 });
 
-// 列出上传的图片端点
-app.get('/uploaded-images', (req, res) => {
-    const params = {
-        Bucket: process.env.S3_BUCKET,
-        Prefix: 'uploads/'
-    };
-    s3.listObjectsV2(params, (err, data) => {
-        if (err) {
-            console.error('Error listing objects from S3:', err);
-            return res.status(500).json({ message: '画像の取得に失敗しました。' });
-        }
-
-        const images = data.Contents.map(item => {
-            return {
-                url: `https://${process.env.S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${item.Key}`,
-                key: item.Key
-            };
-        });
-
-        res.json({ images: images });
-    });
-});
 
 // 重置贴图列表端点
 app.post('/reset-stickers', (req, res) => {
