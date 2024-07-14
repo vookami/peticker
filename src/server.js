@@ -82,7 +82,7 @@ app.get('/random-sticker', (req, res) => {
     const selectedSticker = availableStickers[randomIndex];
     usedStickers.add(selectedSticker);
 
-    res.json({ sticker: `/${selectedSticker}` });
+    res.json({ sticker: `/stickers/${selectedSticker}` });
 });
 
 // 返回index.html文件
