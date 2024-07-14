@@ -21,7 +21,7 @@ const upload = multer({ storage: storage });
 
 // 初始化贴图列表
 let stickers = [];
-let currentStickerIndex = 0;
+const usedStickers = new Set();
 
 const fetchStickersFromLocal = () => {
     const stickersDir = path.join(__dirname, '../public/stickers');
@@ -64,16 +64,18 @@ app.post('/upload', upload.single('image'), (req, res) => {
     });
 });
 
-// 顺序分配贴图端点
+// 随机分配贴图端点
 app.get('/random-sticker', (req, res) => {
     console.log('Received request for /random-sticker');
+    const availableStickers = stickers.filter(sticker => !usedStickers.has(sticker));
 
-    if (currentStickerIndex >= stickers.length) {
+    if (availableStickers.length === 0) {
         return res.status(200).json({ message: '全てのぺッティカーが配れました。' });
     }
 
-    const selectedSticker = stickers[currentStickerIndex];
-    currentStickerIndex++;
+    const randomIndex = Math.floor(Math.random() * availableStickers.length);
+    const selectedSticker = availableStickers[randomIndex];
+    usedStickers.add(selectedSticker);
 
     res.json({ sticker: `/${selectedSticker}` });
 });
@@ -81,7 +83,7 @@ app.get('/random-sticker', (req, res) => {
 // 重置贴图列表端点
 app.post('/reset-stickers', (req, res) => {
     console.log('Received request for /reset-stickers');
-    currentStickerIndex = 0;
+    usedStickers.clear();
     console.log("ステッカーリストがリセットされました！");
     res.json({ message: 'ステッカーリストがリセットされました。' });
 });
