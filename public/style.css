@@ -46,7 +46,6 @@ body {
 }
 
 .description {
-    margin-bottom: 20px;
     color: #ffffff;
     font-family: 'M PLUS Rounded 1c', sans-serif; /* 使用Noto Sans JP字体 */
     font-weight: 400; /* 设置字体粗细 */
