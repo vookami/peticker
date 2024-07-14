@@ -1,6 +1,6 @@
 const express = require('express');
 const path = require('path');
-const fs = require('fs'); // 确保导入 fs 模块
+const fs = require('fs');
 const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
 const AWS = require('aws-sdk');
@@ -16,13 +16,26 @@ const s3 = new AWS.S3({
 });
 
 // 配置multer存储
-const storage = multer.memoryStorage(); // 使用内存存储
+const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-// 初始化贴图列表
-let stickers = fs.readdirSync(path.join(__dirname, '../public/stickers'));
-const initialStickers = [...stickers]; // 保存初始贴图列表
-let usedStickers = new Set(); // 用于跟踪已分配的贴图
+// 初始化贴图列表和已使用贴图索引
+let stickers = [];
+let usedStickersIndex = 0;
+
+// 获取贴图列表并存储到内存中
+const fetchStickersFromS3 = async () => {
+    const params = {
+        Bucket: process.env.S3_BUCKET,
+        Prefix: 'stickers/' // 假设贴纸存储在这个路径下
+    };
+    const data = await s3.listObjectsV2(params).promise();
+    stickers = data.Contents.map(item => item.Key);
+    usedStickersIndex = 0;
+};
+
+// 立即获取贴图列表
+fetchStickersFromS3().catch(console.error);
 
 // 设置静态文件夹
 app.use(express.static(path.join(__dirname, '../public')));
@@ -43,38 +56,33 @@ app.post('/upload', upload.single('image'), (req, res) => {
         ACL: 'public-read'
     };
 
-    console.log('Uploading file to S3 with params:', params); // 添加日志以调试
+    console.log('Uploading file to S3 with params:', params);
 
     s3.upload(params, (err, data) => {
         if (err) {
-            console.error('Error uploading to S3:', err); // 错误日志
-            return res.status(500).json({ message: 'アップロードが失敗しました。' });
+            console.error('Error uploading to S3:', err);
+            return res.status(500).json({ message: 'アップロードが失敗しました。', error: err.message });
         }
 
-        console.log('File uploaded successfully:', data); // 成功日志
+        console.log('File uploaded successfully:', data);
         res.json({ message: '保存成功', filename: data.Key });
     });
 });
 
-// 随机贴图端点
+// 顺序分配贴图端点
 app.get('/random-sticker', (req, res) => {
-    const availableStickers = stickers.filter(sticker => !usedStickers.has(sticker));
-    if (availableStickers.length === 0) {
+    if (usedStickersIndex >= stickers.length) {
         return res.status(200).json({ message: '全てのぺッティカーが配れました。' });
     }
 
-    const randomIndex = Math.floor(Math.random() * availableStickers.length);
-    const selectedSticker = availableStickers[randomIndex];
-    usedStickers.add(selectedSticker);
-
-    res.json({ sticker: `/stickers/${selectedSticker}` });
+    const selectedSticker = stickers[usedStickersIndex];
+    usedStickersIndex += 1;
+    res.json({ sticker: `https://${process.env.S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${selectedSticker}` });
 });
 
-
 // 重置贴图列表端点
-app.post('/reset-stickers', (req, res) => {
-    stickers = [...initialStickers];
-    usedStickers.clear(); // 重置已使用的贴图
+app.post('/reset-stickers', async (req, res) => {
+    await fetchStickersFromS3(); // 重新获取贴图列表
     console.log("ステッカーリストがリセットされました！");
     res.json({ message: 'ステッカーリストがリセットされました。' });
 });
