@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const sticker = document.getElementById('sticker');
     const confirmButton = document.getElementById('confirm-button');
+    const refreshStickerButton = document.getElementById('refresh-sticker-button');
 
     // 请求随机贴图
     const fetchSticker = () => {
@@ -51,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // 确认按钮事件监听
     confirmButton.addEventListener('click', () => {
         const photoContainer = document.getElementById('photo-container');
         html2canvas(photoContainer).then(canvas => {
@@ -77,5 +79,10 @@ document.addEventListener('DOMContentLoaded', () => {
             spread: 70,
             origin: { y: 0.6 }
         });
+    });
+
+    // 刷新按钮事件监听
+    refreshStickerButton.addEventListener('click', () => {
+        fetchSticker();
     });
 });

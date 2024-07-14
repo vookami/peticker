@@ -134,3 +134,19 @@ body {
     text-decoration: none;
     cursor: pointer;
 }
+
+.refresh-sticker-button {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    padding: 5px 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.refresh-sticker-button:hover {
+    background-color: #45a049;
+}
