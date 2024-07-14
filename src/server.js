@@ -36,6 +36,7 @@ const fetchStickersFromS3 = async () => {
         console.log('Stickers fetched from S3:', stickers);
     } catch (error) {
         console.error('Error fetching stickers from S3:', error);
+        throw new Error('Failed to fetch stickers from S3');
     }
 };
 
