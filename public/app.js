@@ -22,7 +22,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         sticker.src = data.sticker;
                         console.log('Sticker src set to:', sticker.src); // 调试信息
                         sticker.classList.remove('fade-out');
-                        sticker.classList.add('fade-in'); // 添加淡入效果
+                        setTimeout(() => {
+                            sticker.classList.add('fade-in'); // 添加淡入效果
+                            setTimeout(() => {
+                                sticker.classList.remove('fade-in'); // 动画结束后移除类名
+                            }, 500); // 淡入动画持续时间
+                        }, 50); // 确保淡出效果完成后再添加淡入效果
                     }
                 })
                 .catch(error => {
