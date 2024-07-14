@@ -29,9 +29,14 @@ const fetchStickersFromS3 = async () => {
         Bucket: process.env.S3_BUCKET,
         Prefix: 'stickers/' // 假设贴纸存储在这个路径下
     };
-    const data = await s3.listObjectsV2(params).promise();
-    stickers = data.Contents.map(item => item.Key);
-    usedStickersIndex = 0;
+    try {
+        const data = await s3.listObjectsV2(params).promise();
+        stickers = data.Contents.map(item => item.Key);
+        usedStickersIndex = 0;
+        console.log('Stickers fetched from S3:', stickers);
+    } catch (error) {
+        console.error('Error fetching stickers from S3:', error);
+    }
 };
 
 // 立即获取贴图列表
