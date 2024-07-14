@@ -90,7 +90,9 @@ app.post('/upload', upload.single('image'), (req, res) => {
 
 // 顺序分配贴图端点
 app.get('/random-sticker', (req, res) => {
+    console.log('Received request for /random-sticker');
     const availableStickers = stickers.filter(sticker => !usedStickers.includes(sticker));
+    console.log('Available stickers:', availableStickers);
     if (availableStickers.length === 0) {
         return res.status(200).json({ message: '全てのぺッティカーが配れました。' });
     }
@@ -98,12 +100,14 @@ app.get('/random-sticker', (req, res) => {
     const selectedSticker = availableStickers[0];
     usedStickers.push(selectedSticker);
     saveUsedStickers();
+    console.log('Selected sticker:', selectedSticker);
 
     res.json({ sticker: `https://${process.env.S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${selectedSticker}` });
 });
 
 // 重置贴图列表端点
 app.post('/reset-stickers', async (req, res) => {
+    console.log('Received request for /reset-stickers');
     try {
         await fetchStickersFromS3(); // 重新获取贴图列表
         usedStickers = []; // 重置已使用贴图
