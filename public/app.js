@@ -5,12 +5,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 请求随机贴图
     const fetchSticker = () => {
-        fetch('/random-sticker')
+        return fetch('/random-sticker')
             .then(response => response.json())
             .then(data => {
-                console.log('Random sticker data:', data); // 调试信息
                 if (data.reset) {
-                    // 自动刷新页面
                     setTimeout(() => {
                         window.location.reload();
                     }, 2000); // 延迟2秒刷新
@@ -18,12 +16,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     alert(data.message);
                 } else {
                     sticker.src = data.sticker;
-                    console.log('Sticker src set to:', sticker.src); // 调试信息
                 }
             })
             .catch(error => {
                 console.error('Error fetching random sticker:', error);
-                // 贴图加载失败时重试
                 setTimeout(fetchSticker, 2000);
             });
     };
@@ -49,7 +45,14 @@ document.addEventListener('DOMContentLoaded', () => {
             end(event) {
                 console.log(event.type, event.target);
             }
-        }
+        },
+        modifiers: [
+            interact.modifiers.restrict({
+                restriction: 'parent',
+                endOnly: true
+            })
+        ],
+        inertia: true
     });
 
     confirmButton.addEventListener('click', () => {
