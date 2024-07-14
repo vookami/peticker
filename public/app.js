@@ -5,27 +5,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 请求随机贴图
     const fetchSticker = () => {
-        fetch('/random-sticker')
-            .then(response => response.json())
-            .then(data => {
-                console.log('Random sticker data:', data); // 调试信息
-                if (data.reset) {
-                    // 自动刷新页面
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 2000); // 延迟2秒刷新
-                } else if (data.message) {
-                    alert(data.message);
-                } else {
-                    sticker.src = data.sticker;
-                    console.log('Sticker src set to:', sticker.src); // 调试信息
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching random sticker:', error);
-                // 贴图加载失败时重试
-                setTimeout(fetchSticker, 2000);
-            });
+        sticker.classList.add('fade-out'); // 添加淡出效果
+        setTimeout(() => {
+            fetch('/random-sticker')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Random sticker data:', data); // 调试信息
+                    if (data.reset) {
+                        // 自动刷新页面
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 2000); // 延迟2秒刷新
+                    } else if (data.message) {
+                        alert(data.message);
+                    } else {
+                        sticker.src = data.sticker;
+                        console.log('Sticker src set to:', sticker.src); // 调试信息
+                        sticker.classList.remove('fade-out');
+                        sticker.classList.add('fade-in'); // 添加淡入效果
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching random sticker:', error);
+                    // 贴图加载失败时重试
+                    setTimeout(fetchSticker, 2000);
+                });
+        }, 500); // 等待淡出动画完成
     };
 
     fetchSticker();
@@ -52,7 +57,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 确认按钮事件监听
     confirmButton.addEventListener('click', () => {
         const photoContainer = document.getElementById('photo-container');
         html2canvas(photoContainer).then(canvas => {
@@ -81,8 +85,27 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 刷新按钮事件监听
-    refreshStickerButton.addEventListener('click', () => {
-        fetchSticker();
-    });
+    refreshStickerButton.addEventListener('click', fetchSticker); // 绑定刷新按钮事件
+
+    if (resetButton) {
+        resetButton.addEventListener('click', () => {
+            fetch('/reset-stickers', {
+                method: 'POST'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                alert(data.message);
+            })
+            .catch(error => {
+                console.error('Error resetting stickers:', error);
+            });
+
+            console.log("ステッカーリストがリセットされました！");
+        });
+    }
 });
