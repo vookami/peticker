@@ -22,6 +22,7 @@ const upload = multer({ storage: storage });
 // 初始化贴图列表
 let stickers = fs.readdirSync(path.join(__dirname, '../public/stickers'));
 const initialStickers = [...stickers]; // 保存初始贴图列表
+let usedStickers = new Set(); // 用于跟踪已分配的贴图
 
 // 设置静态文件夹
 app.use(express.static(path.join(__dirname, '../public')));
@@ -57,12 +58,15 @@ app.post('/upload', upload.single('image'), (req, res) => {
 
 // 随机贴图端点
 app.get('/random-sticker', (req, res) => {
-    if (stickers.length === 0) {
+    const availableStickers = stickers.filter(sticker => !usedStickers.has(sticker));
+    if (availableStickers.length === 0) {
         return res.status(200).json({ message: '全てのぺッティカーが配れました。' });
     }
 
-    const randomIndex = Math.floor(Math.random() * stickers.length);
-    const selectedSticker = stickers.splice(randomIndex, 1)[0];
+    const randomIndex = Math.floor(Math.random() * availableStickers.length);
+    const selectedSticker = availableStickers[randomIndex];
+    usedStickers.add(selectedSticker);
+
     res.json({ sticker: `/stickers/${selectedSticker}` });
 });
 
@@ -70,6 +74,7 @@ app.get('/random-sticker', (req, res) => {
 // 重置贴图列表端点
 app.post('/reset-stickers', (req, res) => {
     stickers = [...initialStickers];
+    usedStickers.clear(); // 重置已使用的贴图
     console.log("ステッカーリストがリセットされました！");
     res.json({ message: 'ステッカーリストがリセットされました。' });
 });
