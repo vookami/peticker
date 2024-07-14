@@ -94,10 +94,34 @@ body {
     transition: background-color 0.3s ease;
     width: 100%; /* 按钮宽度设置为100% */
     max-width: 500px; /* 与宠物照片的最大宽度一致 */
+    margin-top: 10px;
 }
 
 #confirm-button:hover {
     background-color: #f36943;
+}
+
+/* 刷新按钮样式 */
+.refresh-sticker-button {
+    background-color: #4CAF50;
+    color: #ffffff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+    width: 100%; /* 按钮宽度设置为100% */
+    max-width: 500px; /* 与宠物照片的最大宽度一致 */
+    margin-top: 10px;
+}
+
+.refresh-sticker-button:hover {
+    background-color: #45a049;
+}
+
+.refresh-sticker-button i {
+    font-size: 18px; /* 根据需要调整图标大小 */
 }
 
 /* 模态对话框样式 */
@@ -134,27 +158,4 @@ body {
     color: black;
     text-decoration: none;
     cursor: pointer;
-}
-
-.refresh-sticker-button {
-    position: absolute;
-    bottom: 10px;
-    right: 10px;
-    padding: 10px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.refresh-sticker-button:hover {
-    background-color: #45a049;
-}
-
-.refresh-sticker-button i {
-    font-size: 18px; /* 根据需要调整图标大小 */
 }
