@@ -24,8 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
         listeners: {
             start(event) {
                 console.log(event.type, event.target);
-                event.target.classList.add('sticker-dragging'); // 添加拖动类
-                event.target.classList.remove('sticker-dropped'); // 移除动画类
+                
             },
             move(event) {
                 const target = event.target;
@@ -39,8 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             end(event) {
                 console.log(event.type, event.target);
-                event.target.classList.remove('sticker-dragging'); // 移除拖动类
-                event.target.classList.add('sticker-dropped'); // 添加动画类
+
             }
         }
     });

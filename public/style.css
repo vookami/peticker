@@ -134,24 +134,3 @@ body {
     text-decoration: none;
     cursor: pointer;
 }
-
-@keyframes dropAnimation {
-    0% {
-        transform: scale(0.5);
-        opacity: 0;
-    }
-    100% {
-        transform: scale(1);
-        opacity: 1;
-    }
-}
-
-.sticker-dropped {
-    animation: dropAnimation 0.3s ease-out forwards;
-}
-.sticker-dragging {
-    transform: scale(1.2); /* 放大贴纸 */
-    transition: transform 0.2s ease; /* 添加平滑的过渡效果 */
-}
-
-
