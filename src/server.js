@@ -72,11 +72,13 @@ app.get('/random-sticker', (req, res) => {
     if (usedStickers.size === stickers.length) {
         usedStickers.clear(); // 重置已使用的贴图
         console.log('All stickers have been used. Resetting used stickers.');
-        // 自动刷新页面
-        return res.json({ message: '全てのぺッティカーが配れました。リセット中...', reset: true });
     }
 
     const availableStickers = stickers.filter(sticker => !usedStickers.has(sticker));
+
+    if (availableStickers.length === 0) {
+        return res.status(200).json({ message: '全てのぺッティカーが配れました。リセット中...', reset: true });
+    }
 
     const randomIndex = Math.floor(Math.random() * availableStickers.length);
     const selectedSticker = availableStickers[randomIndex];
