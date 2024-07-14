@@ -32,7 +32,7 @@ const fetchStickersFromS3 = async () => {
     try {
         const data = await s3.listObjectsV2(params).promise();
         stickers = data.Contents.map(item => item.Key);
-        usedStickersIndex = 0;
+        usedStickersIndex = 0; // 重置已使用贴图索引
         console.log('Stickers fetched from S3:', stickers);
     } catch (error) {
         console.error('Error fetching stickers from S3:', error);

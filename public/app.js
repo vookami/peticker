@@ -9,10 +9,12 @@ document.addEventListener('DOMContentLoaded', () => {
     fetch('/random-sticker')
         .then(response => response.json())
         .then(data => {
+            console.log('Random sticker data:', data); // 调试信息
             if (data.message) {
                 alert(data.message);
             } else {
                 sticker.src = data.sticker;
+                console.log('Sticker src set to:', sticker.src); // 调试信息
             }
         })
         .catch(error => {
@@ -24,7 +26,6 @@ document.addEventListener('DOMContentLoaded', () => {
         listeners: {
             start(event) {
                 console.log(event.type, event.target);
-                
             },
             move(event) {
                 const target = event.target;
@@ -38,7 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             end(event) {
                 console.log(event.type, event.target);
-
             }
         }
     });
@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const formData = new FormData();
                 formData.append('image', blob, 'edited-photo.png');
 
-                fetch('/upload', { // 修改端点为 '/upload'
+                fetch('/upload', {
                     method: 'POST',
                     body: formData
                 })
@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     alert('ご参加ありがとうございます！');
                 })
                 .catch(error => {
-                    console.error('Error:', error);
+                    console.error('Error uploading image:', error);
                 });
             }, 'image/png');
         });
