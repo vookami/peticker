@@ -20,7 +20,7 @@ const upload = multer({ storage: storage });
 
 // 初始化贴图列表和已使用贴图
 let stickers = [];
-let usedStickersIndex = 0;
+let usedStickers = new Set();  // 使用Set来记录已使用的贴图
 
 // 获取贴图列表并存储到内存中
 const fetchStickersFromS3 = async () => {
@@ -76,12 +76,13 @@ app.post('/upload', upload.single('image'), (req, res) => {
 // 顺序分配贴图端点
 app.get('/random-sticker', (req, res) => {
     console.log('Received request for /random-sticker');
-    if (usedStickersIndex >= stickers.length) {
+    const availableStickers = stickers.filter(sticker => !usedStickers.has(sticker));
+    if (availableStickers.length === 0) {
         return res.status(200).json({ message: '全てのぺッティカーが配れました。' });
     }
 
-    const selectedSticker = stickers[usedStickersIndex];
-    usedStickersIndex++;
+    const selectedSticker = availableStickers[0];
+    usedStickers.add(selectedSticker);
     console.log('Selected sticker:', selectedSticker);
 
     res.json({ sticker: `https://${process.env.S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${selectedSticker}` });
@@ -92,7 +93,7 @@ app.post('/reset-stickers', async (req, res) => {
     console.log('Received request for /reset-stickers');
     try {
         await fetchStickersFromS3(); // 重新获取贴图列表
-        usedStickersIndex = 0; // 重置已使用贴图索引
+        usedStickers.clear(); // 重置已使用贴图
         console.log("ステッカーリストがリセットされました！");
         res.json({ message: 'ステッカーリストがリセットされました。' });
     } catch (error) {

@@ -6,20 +6,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeButton = document.querySelector('.close-button');
 
     // 请求随机贴图
-    fetch('/random-sticker')
-        .then(response => response.json())
-        .then(data => {
-            console.log('Random sticker data:', data); // 调试信息
-            if (data.message) {
-                alert(data.message);
-            } else {
-                sticker.src = data.sticker;
-                console.log('Sticker src set to:', sticker.src); // 调试信息
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching random sticker:', error);
-        });
+    const fetchSticker = () => {
+        fetch('/random-sticker')
+            .then(response => response.json())
+            .then(data => {
+                console.log('Random sticker data:', data); // 调试信息
+                if (data.message) {
+                    alert(data.message);
+                } else {
+                    sticker.src = data.sticker;
+                    console.log('Sticker src set to:', sticker.src); // 调试信息
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching random sticker:', error);
+                // 贴图加载失败时重试
+                setTimeout(fetchSticker, 2000);
+            });
+    };
+
+    fetchSticker();
 
     // 使用 interact.js 实现拖放功能
     interact(sticker).draggable({
@@ -84,12 +90,12 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .then(data => {
                 alert(data.message);
+                console.log("ステッカーリストがリセットされました！");
+                fetchSticker(); // 重置后重新获取贴图
             })
             .catch(error => {
                 console.error('Error resetting stickers:', error);
             });
-
-            console.log("ステッカーリストがリセットされました！");
         });
     }
 });
