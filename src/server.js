@@ -7,6 +7,7 @@ const AWS = require('aws-sdk');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const USED_STICKERS_FILE = path.join(__dirname, 'usedStickers.json');
 
 // 配置AWS S3
 const s3 = new AWS.S3({
@@ -19,9 +20,9 @@ const s3 = new AWS.S3({
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-// 初始化贴图列表和已使用贴图索引
+// 初始化贴图列表和已使用贴图
 let stickers = [];
-let usedStickersIndex = 0;
+let usedStickers = [];
 
 // 获取贴图列表并存储到内存中
 const fetchStickersFromS3 = async () => {
@@ -32,15 +33,28 @@ const fetchStickersFromS3 = async () => {
     try {
         const data = await s3.listObjectsV2(params).promise();
         stickers = data.Contents.map(item => item.Key);
-        usedStickersIndex = 0; // 重置已使用贴图索引
         console.log('Stickers fetched from S3:', stickers);
     } catch (error) {
         console.error('Error fetching stickers from S3:', error);
     }
 };
 
-// 立即获取贴图列表
+// 从文件读取已使用的贴图列表
+const loadUsedStickers = () => {
+    if (fs.existsSync(USED_STICKERS_FILE)) {
+        const data = fs.readFileSync(USED_STICKERS_FILE, 'utf8');
+        usedStickers = JSON.parse(data);
+    }
+};
+
+// 将已使用的贴图写入文件
+const saveUsedStickers = () => {
+    fs.writeFileSync(USED_STICKERS_FILE, JSON.stringify(usedStickers), 'utf8');
+};
+
+// 初始化
 fetchStickersFromS3().catch(console.error);
+loadUsedStickers();
 
 // 设置静态文件夹
 app.use(express.static(path.join(__dirname, '../public')));
@@ -76,18 +90,23 @@ app.post('/upload', upload.single('image'), (req, res) => {
 
 // 顺序分配贴图端点
 app.get('/random-sticker', (req, res) => {
-    if (usedStickersIndex >= stickers.length) {
+    const availableStickers = stickers.filter(sticker => !usedStickers.includes(sticker));
+    if (availableStickers.length === 0) {
         return res.status(200).json({ message: '全てのぺッティカーが配れました。' });
     }
 
-    const selectedSticker = stickers[usedStickersIndex];
-    usedStickersIndex += 1;
+    const selectedSticker = availableStickers[0];
+    usedStickers.push(selectedSticker);
+    saveUsedStickers();
+
     res.json({ sticker: `https://${process.env.S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${selectedSticker}` });
 });
 
 // 重置贴图列表端点
 app.post('/reset-stickers', async (req, res) => {
     await fetchStickersFromS3(); // 重新获取贴图列表
+    usedStickers = []; // 重置已使用贴图
+    saveUsedStickers();
     console.log("ステッカーリストがリセットされました！");
     res.json({ message: 'ステッカーリストがリセットされました。' });
 });
