@@ -1,20 +1,4 @@
-/* style.css */
-/* 添加动画效果 */
-@keyframes fadeOutIn {
-    0% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0;
-    }
-    100% {
-        opacity: 1;
-    }
-}
 
-#sticker.fade {
-    animation: fadeOutIn 1s ease-in-out;
-}
 
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
 
@@ -175,4 +159,14 @@ body {
     color: black;
     text-decoration: none;
     cursor: pointer;
+}
+
+/* 防止触摸行为干扰拖拽 */
+.container, .draggable {
+    touch-action: none;
+}
+
+/* 禁止用户选择行为 */
+.draggable {
+    user-select: none;
 }
