@@ -27,11 +27,17 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchSticker();
 
     // 使用 interact.js 实现拖放功能
-    interact(sticker).draggable({
+    interact('#sticker')
+    .draggable({
+        inertia: true,
+        modifiers: [
+            interact.modifiers.restrictRect({
+                restriction: 'parent',
+                endOnly: true
+            })
+        ],
+        autoScroll: true,
         listeners: {
-            start(event) {
-                console.log(event.type, event.target);
-            },
             move(event) {
                 const target = event.target;
                 const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
@@ -41,18 +47,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 target.setAttribute('data-x', x);
                 target.setAttribute('data-y', y);
-            },
-            end(event) {
-                console.log(event.type, event.target);
             }
-        },
-        modifiers: [
-            interact.modifiers.restrict({
-                restriction: 'parent',
-                endOnly: true
-            })
-        ],
-        inertia: true
+        }
     });
 
     confirmButton.addEventListener('click', () => {
