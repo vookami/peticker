@@ -28,28 +28,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 使用 interact.js 实现拖放功能
     interact('#sticker')
-    .draggable({
-        inertia: true,
-        modifiers: [
-            interact.modifiers.restrictRect({
-                restriction: 'parent',
-                endOnly: true
-            })
-        ],
-        autoScroll: true,
-        listeners: {
-            move(event) {
-                const target = event.target;
-                const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
-                const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+        .draggable({
+            inertia: true,
+            modifiers: [
+                interact.modifiers.restrictRect({
+                    restriction: 'parent',
+                    endOnly: true
+                })
+            ],
+            autoScroll: true,
+            listeners: {
+                move(event) {
+                    var target = event.target,
+                        x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx,
+                        y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
 
-                target.style.transform = `translate(${x}px, ${y}px)`;
-
-                target.setAttribute('data-x', x);
-                target.setAttribute('data-y', y);
+                    target.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
+                    target.setAttribute('data-x', x);
+                    target.setAttribute('data-y', y);
+                }
             }
-        }
-    });
+        });
 
     confirmButton.addEventListener('click', () => {
         const photoContainer = document.getElementById('photo-container');
