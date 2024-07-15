@@ -170,3 +170,27 @@ body {
 .draggable {
     user-select: none;
 }
+
+/* 媒体查询，调整不同屏幕尺寸的样式 */
+@media (max-width: 600px) {
+    .container {
+        padding: 40px 10px 10px 10px;
+    }
+
+    .logo {
+        width: 70%;
+    }
+
+    .description p {
+        font-size: 14px;
+    }
+
+    #confirm-button, .refresh-sticker-button {
+        font-size: 14px;
+        padding: 8px 16px;
+    }
+
+    .modal-content {
+        width: 90%;
+    }
+}
