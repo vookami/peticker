@@ -73,8 +73,8 @@ body {
 
 #sticker {
     width: 10vw; /* 使用视口宽度单位，确保贴纸在不同设备上比例一致 */
-    max-width: 90px; /* 设置最大宽度 */
-    min-width: 50px; /* 设置最小宽度 */
+    max-width: 70px; /* 设置最大宽度 */
+    min-width: 40px; /* 设置最小宽度 */
     height: auto;
     cursor: move;
     position: absolute;
